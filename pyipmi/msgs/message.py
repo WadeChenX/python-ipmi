@@ -17,6 +17,7 @@
 
 from __future__ import absolute_import
 
+import copy
 from array import array
 
 from . import constants
@@ -96,6 +97,9 @@ class VariableByteArray(ByteArray):
 class UnsignedInt(BaseField):
     def encode(self, obj, data):
         value = getattr(obj, self.name)
+        if value is None:
+            raise EncodingError()
+
         data.push_unsigned_int(value, self.length)
 
     def decode(self, obj, data):
@@ -103,11 +107,23 @@ class UnsignedInt(BaseField):
         setattr(obj, self.name, value)
 
     def create(self):
-        if self.default is not None:
-            return self.default
-        else:
-            return 0
+        return self.default
 
+
+class UnsignedIntBig(BaseField):
+    def encode(self, obj, data):
+        value = getattr(obj, self.name)
+        if value is None:
+            raise EncodingError()
+
+        data.push_unsigned_int_big(value, self.length)
+
+    def decode(self, obj, data):
+        value = data.pop_unsigned_int_big(self.length)
+        setattr(obj, self.name, value)
+
+    def create(self):
+        return self.default
 
 class String(BaseField):
     def encode(self, obj, data):
@@ -330,15 +346,16 @@ class Message(object):
         self.lun = self.__default_lun__
 
         self.data = ''
+        self.req_obj = None
         if args:
             self._decode(args[0])
         else:
             for (name, value) in kwargs.items():
-                self._set_field(name, value)
+                _value = copy.deepcopy(value)
+                self._set_field(name, _value)
 
     def _set_field(self, name, value):
-        raise NotImplementedError()
-        # TODO walk along the properties..
+        setattr(self, name, value)
 
     def _create_fields(self):
         for field in self.__fields__:

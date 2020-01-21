@@ -25,6 +25,7 @@ from .message import Message
 from .message import ByteArray
 from .message import VariableByteArray
 from .message import UnsignedInt
+from .message import UnsignedIntBig
 from .message import UnsignedIntMask
 from .message import Timestamp
 from .message import Bitfield
