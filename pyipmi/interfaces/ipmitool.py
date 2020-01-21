@@ -103,6 +103,7 @@ class Ipmitool(object):
             raise RuntimeError('interface type %s not supported' %
                                self._interface_type)
 
+        log().debug('IPMI CMD: {:s}'.format(cmd))
         output, rc = self._run_ipmitool(cmd)
 
         # check for errors
@@ -146,11 +147,12 @@ class Ipmitool(object):
         rsp_data = self.send_and_receive_raw(req.target, req.lun, req.netfn,
                                              py3_array_tobytes(req_data))
 
-        rsp = create_message(req.netfn + 1, req.cmdid, req.group_extension)
+        rsp = create_message(req.netfn + 1, req.cmdid, req.group_extension, req_obj=req)
         decode_message(rsp, rsp_data)
         log().debug('IPMI Response [%s])', rsp)
 
         return rsp
+
 
     @staticmethod
     def _build_ipmitool_raw_data(lun, netfn, raw):

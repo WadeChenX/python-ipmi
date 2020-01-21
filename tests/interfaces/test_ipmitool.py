@@ -3,6 +3,7 @@
 
 from mock import MagicMock
 from nose.tools import eq_, raises
+import logging
 
 from pyipmi.errors import IpmiTimeoutError
 from pyipmi.interfaces import Ipmitool

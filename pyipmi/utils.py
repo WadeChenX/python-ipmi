@@ -90,6 +90,19 @@ class ByteBuffer(object):
                 raise DecodingError('Data too short for message')
         return value
 
+    def push_unsigned_int_big(self, value, length):
+        for i in range(length-1, -1, -1):
+            self.array.append((value >> (8*i) & 0xff))
+
+    def pop_unsigned_int_big(self, length):
+        value = 0
+        for i in range(length-1, -1, -1):
+            try:
+                value |= self.array.pop(0) << (8*i)
+            except IndexError:
+                raise DecodingError('Data too short for message')
+        return value
+
     def push_string(self, value):
         if _PY3 and isinstance(value, str):
             # Encode Unicode to UTF-8
