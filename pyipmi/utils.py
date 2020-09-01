@@ -126,6 +126,9 @@ class ByteBuffer(object):
     def tostring(self):
         return py3_array_tobytes(self.array)
 
+    def tobytes(self):
+        return py3_array_tobytes(self.array)
+
     def extend(self, data):
         self.array.extend(data)
 
