@@ -120,6 +120,25 @@ class ChassisControlRsp(Message):
         CompletionCode(),
     )
 
+@register_message_class
+class ChassisIdentifyReq(Message):
+    __cmdid__ = constants.CMDID_CHASSIS_IDENTIFY
+    __netfn__ = constants.NETFN_CHASSIS
+    __fields__ = (
+        UnsignedInt('interval', 1),
+        Bitfield('force_id_on', 1,
+                 Bitfield.Bit('turn_on', 1),
+                 Bitfield.ReservedBit(7, 0)),
+    )
+
+
+@register_message_class
+class ChassisIdentifyRsp(Message):
+    __cmdid__ = constants.CMDID_CHASSIS_IDENTIFY
+    __netfn__ = constants.NETFN_CHASSIS | 1
+    __fields__ = (
+        CompletionCode(),
+    )
 
 @register_message_class
 class GetPohCounterReq(Message):
@@ -136,3 +155,4 @@ class GetPohCounterRsp(Message):
         UnsignedInt('minutes_per_count', 1),
         UnsignedInt('counter_reading', 4),
     )
+

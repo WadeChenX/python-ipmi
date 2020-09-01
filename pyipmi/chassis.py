@@ -19,11 +19,29 @@ from __future__ import absolute_import
 from .msgs import create_request_by_name
 from .utils import check_completion_code
 from .state import State
+from .errors import NotSupportedError
 
 from .msgs.chassis import \
         CONTROL_POWER_DOWN, CONTROL_POWER_UP, CONTROL_POWER_CYCLE, \
         CONTROL_HARD_RESET, CONTROL_DIAGNOSTIC_INTERRUPT, \
         CONTROL_SOFT_SHUTDOWN
+
+class ChassisInfo:
+    FIELD_CURRENT_POWER_RESTORE_POLICY= {
+            0: "power_off",
+            1: "restore",
+            2: "power_on",
+            3: "unknown",
+    }
+    FIELD_CURRENT_POWER_RESTORE_POLICY_INV = {v:k for k, v in FIELD_CURRENT_POWER_RESTORE_POLICY.items()}
+
+    FIELD_ID_STATE = {
+            0: "off",
+            1: "interval_on",
+            2: "on",
+            3: "reserved"
+    }
+    FIELD_ID_STATE_INV = {v:k for k, v in FIELD_ID_STATE.items()}
 
 
 class Chassis(object):
@@ -54,6 +72,31 @@ class Chassis(object):
     def chassis_control_soft_shutdown(self):
         self.chassis_control(CONTROL_SOFT_SHUTDOWN)
 
+    def chassis_turn_id(self, state, value=0):
+        if state not in ChassisInfo.FIELD_ID_STATE_INV.keys():
+            raise NotSupportedError("ERROR: 'state' = {}, not known.".format(state))
+
+        if value not in range(0, 256):
+            raise NotSupportedError("ERROR: 'value' = {}, not 0~255.".format(value))
+
+        req = create_request_by_name('ChassisIdentify')
+        if ChassisInfo.FIELD_ID_STATE_INV[state] == 2: 
+            # turn on id
+            req.force_id_on.turn_on = 1
+            req.interval = 0
+
+        elif ChassisInfo.FIELD_ID_STATE_INV[state] == 0:
+            # turn off id
+            req.interval = 0
+            req.force_id_on.turn_on = 0
+
+        else:
+            # turn on id by interval 
+            req.interval = value
+            req.force_id_on.turn_on = 0
+
+        rsp = self.send_message(req)
+        check_completion_code(rsp.completion_code)
 
 class ChassisStatus(State):
     power_on = None
@@ -68,15 +111,16 @@ class ChassisStatus(State):
     last_event = []
     chassis_state = []
 
+
     def _from_response(self, rsp):
         self.power_on = bool(rsp.current_power_state.power_on)
         self.overload = bool(rsp.current_power_state.power_overload)
         self.interlock = bool(rsp.current_power_state.interlock)
         self.fault = bool(rsp.current_power_state.power_fault)
         self.control_fault = bool(rsp.current_power_state.power_control_fault)
-        self.restore_policy = rsp.current_power_state.power_restore_policy
-        self.id_cmd_state_info_support=bool(rsp.misc_chassis_state.id_cmd_state_info_support)
-        self.chassis_id_state=rsp.misc_chassis_state.chassis_id_state
+        self.restore_policy = ChassisInfo.FIELD_CURRENT_POWER_RESTORE_POLICY[rsp.current_power_state.power_restore_policy]
+        self.id_cmd_state_info_support = bool(rsp.misc_chassis_state.id_cmd_state_info_support)
+        self.chassis_id_state = ChassisInfo.FIELD_ID_STATE[rsp.misc_chassis_state.chassis_id_state]
         if rsp.front_panel_button_capabilities is not None:
             self.front_panel_button_capabilities=rsp.front_panel_button_capabilities
 
@@ -99,3 +143,27 @@ class ChassisStatus(State):
             self.chassis_state.append('drive_fault')
         if rsp.misc_chassis_state.cooling_fault_detected:
             self.chassis_state.append('cooling_fault')
+
+    def __str__(self):
+        out = "Current Power State =>\n"
+        out += "  power_on: {}\n".format(self.power_on)
+        out += "  overload: {}\n".format(self.overload)
+        out += "  interlock: {}\n".format(self.interlock)
+        out += "  power fault: {}\n".format(self.fault)
+        out += "  control fault: {}\n".format(self.control_fault)
+        out += "  restore_policy: {}\n".format(self.restore_policy)
+        out += "last event: {}\n".format(self.last_event)
+        out += "Misc state {}\n".format(self.chassis_state)
+        out += "id_cmd_state_info_support: {}\n".format(self.id_cmd_state_info_support)
+        if self.id_cmd_state_info_support:
+            out += "chassis_id_state: {}\n".format(self.chassis_id_state)
+
+        return out
+
+
+
+
+
+
+
+

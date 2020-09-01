@@ -14,7 +14,7 @@ These commands are primarily to provide standardized chassis status and control 
 +-------------------------------+-----+---------+-----+
 | Chassis Reset                 | O   | No      | No  |
 +-------------------------------+-----+---------+-----+
-| Chassis Identify              | O   | No      | No  |
+| Chassis Identify              | O   | No      | Yes |
 +-------------------------------+-----+---------+-----+
 | Set Front Panel Enables       | O   | No      | No  |
 +-------------------------------+-----+---------+-----+

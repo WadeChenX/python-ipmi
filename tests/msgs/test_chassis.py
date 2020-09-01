@@ -17,7 +17,7 @@ def test_getchassisstatus_encode_valid_req():
 
 def test_getchassisstatus_decode_valid_rsp():
     m = pyipmi.msgs.chassis.GetChassisStatusRsp()
-    decode_message(m, b'\x00\xea\xaa\xaa')
+    decode_message(m, b'\x00\xea\xaa\xea')
     eq_(m.completion_code, 0x00)
     eq_(m.current_power_state.power_on, 0)
     eq_(m.current_power_state.power_overload, 1)
@@ -37,6 +37,9 @@ def test_getchassisstatus_decode_valid_rsp():
     eq_(m.misc_chassis_state.drive_fault, 0)
     eq_(m.misc_chassis_state.cooling_fault_detected, 1)
 
+    eq_(m.misc_chassis_state.id_cmd_state_info_support, 1)
+    eq_(m.misc_chassis_state.chassis_id_state, 2)
+
 
 def test_getchassisstatus_decode_valid_optional_byte_rsp():
     m = pyipmi.msgs.chassis.GetChassisStatusRsp()
@@ -52,3 +55,22 @@ def test_chassiscontrol_encode_valid_req():
     eq_(m.__netfn__, 0)
     eq_(m.__cmdid__, 2)
     eq_(data, b'\x01')
+
+def test_chassis_id_encode_valid_req():
+    m = pyipmi.msgs.chassis.ChassisIdentifyReq()
+    m.interval = 0x1f
+    m.force_id_on.turn_on = 0
+    data = encode_message(m)
+    eq_(m.__netfn__, 0)
+    eq_(m.__cmdid__, 4)
+    eq_(data, b'\x1f\x00')
+
+    m = pyipmi.msgs.chassis.ChassisIdentifyReq()
+    m.interval = 0x1f
+    m.force_id_on.turn_on = 1
+    data = encode_message(m)
+    eq_(m.__netfn__, 0)
+    eq_(m.__cmdid__, 4)
+    eq_(data, b'\x1f\x01')
+
+
