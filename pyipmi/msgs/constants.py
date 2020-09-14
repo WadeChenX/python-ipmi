@@ -249,6 +249,8 @@ CMDID_GET_LAN_CONFIGURATION_PARAMETERS = 0x02
 CMDID_SUSPEND_BMC_ARPS = 0x03
 CMDID_GET_IP_UDP_RMCP_STATISTICS = 0x04
 # Serial/Modem device .. NetFn Transport
+CMDID_SET_SOL_CONFIGURATION_PATAMETERS = 0x21
+CMDID_GET_SOL_CONFIGURATION_PATAMETERS = 0x22
 # Command Forwarding .. NetFn Transport
 # bridge management (ICMB) .. NetFn Bridge
 # discovery (ICMB) .. NetFn Bridge
