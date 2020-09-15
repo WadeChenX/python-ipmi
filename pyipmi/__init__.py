@@ -33,6 +33,7 @@ from . import sdr
 from . import sel
 from . import sensor
 from . import msgs
+from . import sol
 
 from .errors import IpmiTimeoutError, CompletionCodeError, RetryError
 from .msgs.registry import create_request_by_name
@@ -155,7 +156,7 @@ class Target(object):
 
 
 class Ipmi(bmc.Bmc, chassis.Chassis, dcmi.Dcmi, fru.Fru, picmg.Picmg, hpm.Hpm,
-           sdr.Sdr, sensor.Sensor, event.Event, sel.Sel, lan.Lan,
+           sdr.Sdr, sensor.Sensor, event.Event, sel.Sel, lan.Lan, sol.Sol,
            messaging.Messaging):
 
     def __init__(self):
