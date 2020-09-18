@@ -72,6 +72,7 @@ class Lan(object):
             raise NotSupportedError()
 
         req_list = []
+        req_list.append(self.__lan_new_get_req(channel, lan.LAN_PARAMETER_SET_IN_PROGRESS))
         if group_ipv4_ipv6:
             req_list.append(self.__lan_new_get_req(channel, lan.LAN_PARAMETER_IPV6_IPV4_ADDRESSING_ENABLES))
 
