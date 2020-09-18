@@ -114,4 +114,23 @@ There are methods defined for each of the above options:
    ipmi.chassis_control_soft_shutdown()
 
 
+Chassis Identify
+~~~~~~~~~~~~~~~~~
+
+This command causes the chassis to physically identify itself by a mechanism chosen by the system implementation, 
+such as turning on blinking user-visible lights or emitting beeps via a beeper, LCD panel, etc.
+
++-----------------------------------------+
+| **chassis_turn_id(state, value=0)**     |
++-----------------------------------------+
+
+where ``state`` argument can take the following string as defined below:
+
+ - off
+ - interval_on
+ - on
+
+if state is "interval_on", then ``value`` could be assigned as timeout value.
+
+
 .. _IPMI standard: https://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/ipmi-second-gen-interface-spec-v2-rev1-1.pdf
