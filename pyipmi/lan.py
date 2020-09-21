@@ -15,6 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 
 import ipaddress
+from .logger import log
 
 from .msgs import create_request_by_name
 from .utils import check_completion_code
@@ -216,13 +217,13 @@ class Lan(object):
         if addr_src is not None:
             if addr_src not in LanInfo.FIELD_IP_ADDRESS_SOURCE_INV.keys():
                 raise RuntimeError("Can't find {} in maps.".format(addr_src))
-            req.ipv4_address_source = LanInfo.FIELD_IP_ADDRESS_SOURCE_INV[addr_src]
+            req.ipv4_address_source.src = LanInfo.FIELD_IP_ADDRESS_SOURCE_INV[addr_src]
 
         else:
-            req.ipv4_address_source = LanInfo.FIELD_IP_ADDRESS_SOURCE_INV["static_addr_by_manual"]
+            req.ipv4_address_source.src = LanInfo.FIELD_IP_ADDRESS_SOURCE_INV["static_addr_by_manual"]
         req_list.append(req)
 
-        if req.ipv4_address_source != LanInfo.FIELD_IP_ADDRESS_SOURCE_INV["dhcp"]:
+        if req.ipv4_address_source.src != LanInfo.FIELD_IP_ADDRESS_SOURCE_INV["dhcp"]:
             req = create_request_by_name('SetLanConfigurationParameters')
             req.command.channel_number = channel
             req.parameter_selector = lan.LAN_PARAMETER_IP_ADDRESS
@@ -260,12 +261,11 @@ class Lan(object):
             lan_info,
             channel=0, 
             ipv6_enable=None, 
-            v6_selector=None, 
             v6_addr_src=None, 
             v6_addr=None, 
             v6_prefix_length=None):
 
-        params = [v6_selector, v6_addr_src, v6_addr, v6_prefix_length]
+        params = [v6_addr_src, v6_addr, v6_prefix_length]
         params_valid = [ x for x in params if x is not None ]
         if ipv6_enable is False:
             if len(params_valid) > 0:
@@ -279,11 +279,7 @@ class Lan(object):
         # prepare set requests
         req_list = []
 
-        if v6_selector is None:
-            v6_selector = lan_info.ipv6_static_selector
-        elif type(v6_selector) != int or v6_selector > 255:
-            raise RuntimeError("parameter 'v6_selector' is not 'int' type or 'v6_selector' > 255")
-
+        v6_selector = 0
         if v6_addr_src is None:
             v6_addr_src = lan_info.ipv6_static_address_source
         elif v6_addr_src not in LanInfo.FIELD_IPV6_ADDRESS_SOURCE_INV.keys():
@@ -304,18 +300,21 @@ class Lan(object):
         req.command.channel_number = channel
         req.parameter_selector = lan.LAN_PARAMETER_IPV6_STATIC_ADDRESSES
         req.ipv6_static_selector = v6_selector
-        if v6_addr_src == "DHCPv6":
-            req.ipv6_static_address_source.src = 0
-            req.ipv6_static_address_source.enable = 0
-            req.ipv6_static_address = 0
-            req.ipv6_static_prefix_length = 0
-            req.ipv6_static_address_status = 0
-        else:
+
+        if v6_addr_src == "ipv6_static_addr":
             req.ipv6_static_address_source.src = LanInfo.FIELD_IPV6_ADDRESS_SOURCE_INV[v6_addr_src]
             req.ipv6_static_address_source.enable = 1
             req.ipv6_static_address = int(v6_addr)
             req.ipv6_static_prefix_length = v6_prefix_length
             req.ipv6_static_address_status = 0
+
+        else:
+            req.ipv6_static_address_source.src = 0
+            req.ipv6_static_address_source.enable = 0
+            req.ipv6_static_address = 0
+            req.ipv6_static_prefix_length = 0
+            req.ipv6_static_address_status = 0
+
 
         req_list.append(req)
 
@@ -330,7 +329,6 @@ class Lan(object):
             gateway=None,
             ipv6_enable=None,
             v6_addr_src=None,
-            v6_selector=None,
             v6_addr=None,
             v6_prefix_length=None):
 
@@ -352,7 +350,6 @@ class Lan(object):
         ipv6_dict = dict(
                 ipv6_enable=ipv6_enable,
                 v6_addr_src=v6_addr_src,
-                v6_selector=v6_selector,
                 v6_addr=v6_addr,
                 v6_prefix_length=v6_prefix_length
             )
@@ -469,7 +466,6 @@ class LanInfo(object):
 
 
     FIELD_IP_ADDRESS_SOURCE = {
-            0: "unspecified",
             1: "static_addr_by_manual",
             2: "dhcp",
             3: "static_addr_by_bios_sw",
@@ -485,6 +481,7 @@ class LanInfo(object):
     FIELD_IPV6_IPV4_ADDRESSING_ENABLES_INV = {v:k for k, v in FIELD_IPV6_IPV4_ADDRESSING_ENABLES.items()}
 
     FIELD_IPV6_ADDRESS_SOURCE = {
+            -1: "ipv6_dynamic",
             0: "ipv6_static_addr",
             1: "SLAAC",
             2: "DHCPv6",

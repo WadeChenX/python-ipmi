@@ -147,6 +147,7 @@ def test_Lan_get_lan_info_valid():
     # start to test
     check_param_maps = {
             "ipv4": {
+                        pyipmi.msgs.lan.LAN_PARAMETER_SET_IN_PROGRESS,
                         pyipmi.msgs.lan.LAN_PARAMETER_IPV6_IPV4_ADDRESSING_ENABLES, 
                         pyipmi.msgs.lan.LAN_PARAMETER_IP_ADDRESS,
                         pyipmi.msgs.lan.LAN_PARAMETER_IP_ADDRESS_SOURCE,
@@ -154,6 +155,7 @@ def test_Lan_get_lan_info_valid():
                         pyipmi.msgs.lan.LAN_PARAMETER_DEFAULT_GATEWAY_ADDRESS,
                     },
             "ipv6": {
+                        pyipmi.msgs.lan.LAN_PARAMETER_SET_IN_PROGRESS,
                         pyipmi.msgs.lan.LAN_PARAMETER_IPV6_IPV4_ADDRESSING_ENABLES,
                         pyipmi.msgs.lan.LAN_PARAMETER_IPV6_STATIC_ADDRESSES,
                         pyipmi.msgs.lan.LAN_PARAMETER_IPV6_DYNAMIC_ADDRESS,
@@ -413,7 +415,7 @@ def test_Lan_set_lan_info_ipv4_valid():
     eq_(len(reqs), 1)
     ok_(pyipmi.msgs.lan.LAN_PARAMETER_IP_ADDRESS_SOURCE in param_req_map.keys())
     test_req = param_req_map[pyipmi.msgs.lan.LAN_PARAMETER_IP_ADDRESS_SOURCE]
-    eq_(test_req.ipv4_address_source, pyipmi.lan.LanInfo.FIELD_IP_ADDRESS_SOURCE_INV["dhcp"])
+    eq_(test_req.ipv4_address_source.src, pyipmi.lan.LanInfo.FIELD_IP_ADDRESS_SOURCE_INV["dhcp"])
 
     # test case 3: enable ipv4, settings ip_addr: 192.168.1.104, but others remain the same.
     lan_obj.set_lan_info(channel=1, ipv4_enable=True, addr=ipaddress.IPv4Address("192.168.1.104"))
@@ -427,7 +429,7 @@ def test_Lan_set_lan_info_ipv4_valid():
     ok_(pyipmi.msgs.lan.LAN_PARAMETER_DEFAULT_GATEWAY_ADDRESS in param_req_map.keys())
 
     test_req = param_req_map[pyipmi.msgs.lan.LAN_PARAMETER_IP_ADDRESS_SOURCE]
-    eq_(test_req.ipv4_address_source, pyipmi.lan.LanInfo.FIELD_IP_ADDRESS_SOURCE_INV["static_addr_by_manual"])
+    eq_(test_req.ipv4_address_source.src, pyipmi.lan.LanInfo.FIELD_IP_ADDRESS_SOURCE_INV["static_addr_by_manual"])
     test_req = param_req_map[pyipmi.msgs.lan.LAN_PARAMETER_IP_ADDRESS]
     eq_(test_req.ipv4_address, int(ipaddress.IPv4Address("192.168.1.104")))
     test_req = param_req_map[pyipmi.msgs.lan.LAN_PARAMETER_SUBNET_MASK]
@@ -498,7 +500,7 @@ def test_Lan_set_lan_info_ipv6_valid():
     eq_(test_req.ipv6_ipv4_addressing_enables, pyipmi.lan.LanInfo.FIELD_IPV6_IPV4_ADDRESSING_ENABLES_INV["ipv6_addr_disabled"])
 
     # test case 2: enable ipv6, addr_src is dhcpv6
-    lan_obj.set_lan_info(channel=1, ipv6_enable=True, v6_addr_src='DHCPv6')
+    lan_obj.set_lan_info(channel=1, ipv6_enable=True, v6_addr_src='ipv6_dynamic')
     args = mock_send_recv.call_args.args
     reqs = args[0]
     param_req_map = { req.parameter_selector: req  for req in reqs }
@@ -516,7 +518,6 @@ def test_Lan_set_lan_info_ipv6_valid():
             channel=1, 
             ipv6_enable=True, 
             v6_addr_src="ipv6_static_addr", 
-            v6_selector=0, 
             v6_addr=ipaddress.IPv6Address("fd00::2e0:e8ff:fe90:3109"),
             v6_prefix_length=64
     )
@@ -586,37 +587,10 @@ def test_Lan_set_lan_info_ipv6_invalid_2():
             channel=1, 
             ipv6_enable=True,
             v6_addr_src="dfdffdf",
-            v6_selector=0,
             v6_addr=ipaddress.IPv6Address("fd00::2e0:e8ff:fe90:3109"),
             v6_prefix_length=64
     )
 
-@raises(RuntimeError)
-def test_Lan_set_lan_info_ipv6_invalid_3():
-    lan_obj = pyipmi.lan.Lan()
-
-    # create fake response
-    req = pyipmi.msgs.lan.GetLanConfigurationParametersReq()
-    req.command.channel_number = 1
-    req.parameter_selector = pyipmi.msgs.lan.LAN_PARAMETER_SET_IN_PROGRESS
-    req.set_selector = 0
-    req.block_selector = 0
-    rsp = pyipmi.msgs.lan.GetLanConfigurationParametersRsp(req_obj=req)
-    rsp.completion_code = 0
-
-    mock_send_recv = MagicMock()
-    mock_send_recv.return_value = [rsp]
-
-    lan_obj._lan_send_and_recv = mock_send_recv
-
-    lan_obj.set_lan_info(
-            channel=1, 
-            ipv6_enable=True,
-            v6_addr_src="ipv6_static_addr",
-            v6_selector='erer',
-            v6_addr=ipaddress.IPv6Address("fd00::2e0:e8ff:fe90:3109"),
-            v6_prefix_length=64
-    )
 
 @raises(RuntimeError)
 def test_Lan_set_lan_info_ipv6_invalid_4():
@@ -640,7 +614,6 @@ def test_Lan_set_lan_info_ipv6_invalid_4():
             channel=1, 
             ipv6_enable=True,
             v6_addr_src="ipv6_static_addr",
-            v6_selector=0,
             v6_addr='dere',
             v6_prefix_length=64
     )
@@ -667,7 +640,6 @@ def test_Lan_set_lan_info_ipv6_invalid_5():
             channel=1, 
             ipv6_enable=True,
             v6_addr_src="ipv6_static_addr",
-            v6_selector=0,
             v6_addr=ipaddress.IPv6Address("fd00::2e0:e8ff:fe90:3109"),
             v6_prefix_length='ererer'
     )
