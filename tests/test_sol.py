@@ -6,6 +6,7 @@ import copy
 from nose.tools import eq_, raises, ok_
 from mock import MagicMock
 
+from pyipmi.base import Base
 from pyipmi import interfaces, create_connection
 
 import pyipmi.msgs.sol
@@ -147,6 +148,28 @@ def test_SolInfo():
     decode_message(rsp, b'\x00\x11\x6f\x02')
     sol_info.refresh_info(rsp)
     eq_(sol_info.payload_port, 623)
+
+def test_sol_watch():
+    sol_info = pyipmi.sol.SolInfo()
+
+    sol_obj = pyipmi.sol.Sol()
+    mock_get_sol_info = MagicMock()
+    mock_get_sol_info.return_value = sol_info
+    sol_obj.get_sol_info = mock_get_sol_info
+
+    # volatile bit
+    req = pyipmi.msgs.sol.GetSOLConfigurationParametersReq()
+    req.command.channel_number = 0x0e
+    req.parameter_selector = pyipmi.msgs.sol.SOL_PARAMETER_VOLATILE_BIT_RATE
+    req.set_selector = 0
+    req.block_selector = 0
+    rsp = pyipmi.msgs.sol.GetSOLConfigurationParametersRsp(req_obj=req)
+    decode_message(rsp, b'\x00\x11\x0a')
+    sol_info.refresh_info(rsp)
+    eq_(sol_info.volatile_bit_rate, 115200)
+
+    eq_(sol_obj.sol_watch("volatile_bit_rate", 115200, timeout=1, channel=0x0e), Base.STATE_COMPLETE)
+    eq_(sol_obj.sol_watch("volatile_bit_rate", 57600, timeout=1, channel=0x0e), Base.STATE_TIMEOUT)
 
 @raises(AttributeError)
 def test_SolInfo_invalid__set_in_progress():

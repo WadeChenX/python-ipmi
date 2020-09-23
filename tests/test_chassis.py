@@ -4,6 +4,7 @@
 from nose.tools import eq_, raises, ok_
 from mock import MagicMock
 
+from pyipmi.base import Base
 from pyipmi.chassis import Chassis
 from pyipmi.chassis import ChassisStatus
 from pyipmi.chassis import ChassisInfo
@@ -39,6 +40,22 @@ def test_chassisstatus_object():
 
     eq_(status.id_cmd_state_info_support, True)
     eq_('interval_on', status.chassis_id_state)
+
+def test_chassis_watch():
+    msg = pyipmi.msgs.chassis.GetChassisStatusRsp()
+
+    chassis_obj = pyipmi.chassis.Chassis()
+    mock_send_message_with_name = MagicMock()
+    mock_send_message_with_name.return_value = msg
+    chassis_obj.send_message_with_name = mock_send_message_with_name
+
+    decode_message(msg, b'\x00\xff\xff\x5f')
+    eq_(chassis_obj.chassis_watch("power_on", True, timeout=1), Base.STATE_COMPLETE)
+    eq_(chassis_obj.chassis_watch("power_on", False, timeout=1), Base.STATE_TIMEOUT)
+
+    decode_message(msg, b'\x00\xfe\xff\x5f')
+    eq_(chassis_obj.chassis_watch("power_on", False, timeout=1), Base.STATE_COMPLETE)
+    eq_(chassis_obj.chassis_watch("power_on", True, timeout=1), Base.STATE_TIMEOUT)
 
 def test_chassis_turn_id_req_valid():
     rsp = pyipmi.msgs.chassis.ChassisIdentifyRsp()
