@@ -75,6 +75,26 @@ For example:
 .. code:: python
 
    chassis_status=ipmi.get_chassis_status()
+   print(chassis_status)
+
+The output showed as below:
+
+.. code:: 
+
+        power_on=False
+        overload=False
+        interlock=False
+        fault=False
+        control_fault=False
+        restore_policy=power_on
+        last event=['ac_failed']
+        chassis_state=[]
+        id_cmd_state_info_support=True
+        chassis_id_state=off
+
+
+        
+
 
 
 Chassis Control Command

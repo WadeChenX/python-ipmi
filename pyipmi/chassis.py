@@ -145,18 +145,17 @@ class ChassisStatus(State):
             self.chassis_state.append('cooling_fault')
 
     def __str__(self):
-        out = "Current Power State =>\n"
-        out += "  power_on: {}\n".format(self.power_on)
-        out += "  overload: {}\n".format(self.overload)
-        out += "  interlock: {}\n".format(self.interlock)
-        out += "  power fault: {}\n".format(self.fault)
-        out += "  control fault: {}\n".format(self.control_fault)
-        out += "  restore_policy: {}\n".format(self.restore_policy)
-        out += "last event: {}\n".format(self.last_event)
-        out += "Misc state {}\n".format(self.chassis_state)
-        out += "id_cmd_state_info_support: {}\n".format(self.id_cmd_state_info_support)
-        if self.id_cmd_state_info_support:
-            out += "chassis_id_state: {}\n".format(self.chassis_id_state)
+        out = ""
+        out += "power_on={}\n".format(self.power_on)
+        out += "overload={}\n".format(self.overload)
+        out += "interlock={}\n".format(self.interlock)
+        out += "fault={}\n".format(self.fault)
+        out += "control_fault={}\n".format(self.control_fault)
+        out += "restore_policy={}\n".format(self.restore_policy)
+        out += "last_event={}\n".format(self.last_event)
+        out += "chassis_state={}\n".format(self.chassis_state)
+        out += "id_cmd_state_info_support={}\n".format(self.id_cmd_state_info_support)
+        out += "chassis_id_state={}\n".format(self.chassis_id_state)
 
         return out
 
