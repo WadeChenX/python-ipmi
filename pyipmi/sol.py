@@ -20,8 +20,9 @@ from .msgs import create_request_by_name
 from .utils import check_completion_code
 from .msgs import sol
 from .errors import NotSupportedError
+from .base import Base
 
-class Sol(object):
+class Sol(Base):
 
     def _sol_send_and_recv(self, reqs):
         rsp_list = []
@@ -144,6 +145,8 @@ class Sol(object):
         if len(req_list) > 0:
             rsp_list = self._sol_send_and_recv(req_list)
 
+    def sol_watch(self, field, to_value, from_value=None, timeout=0, interval=0.5, channel=0):
+        return self.watch(lambda: self.get_sol_info(channel), field, to_value, from_value, timeout, interval)
 
 
 class SolInfo(object):

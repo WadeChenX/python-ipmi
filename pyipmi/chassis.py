@@ -16,10 +16,15 @@
 
 from __future__ import absolute_import
 
+import time
+
 from .msgs import create_request_by_name
 from .utils import check_completion_code
 from .state import State
 from .errors import NotSupportedError
+
+from .base import Base
+
 
 from .msgs.chassis import \
         CONTROL_POWER_DOWN, CONTROL_POWER_UP, CONTROL_POWER_CYCLE, \
@@ -27,6 +32,12 @@ from .msgs.chassis import \
         CONTROL_SOFT_SHUTDOWN
 
 class ChassisInfo:
+    STATE_TIMEOUT = -1
+    STATE_COMPLETE = 0
+    STATE_INIT = 1
+    STATE_WAIT_FROM_VAL = 2
+    STATE_WAIT_TO_VAL = 3
+
     FIELD_CURRENT_POWER_RESTORE_POLICY= {
             0: "power_off",
             1: "restore",
@@ -44,7 +55,7 @@ class ChassisInfo:
     FIELD_ID_STATE_INV = {v:k for k, v in FIELD_ID_STATE.items()}
 
 
-class Chassis(object):
+class Chassis(Base):
     def get_chassis_status(self):
         return ChassisStatus(self.send_message_with_name('GetChassisStatus'))
 
@@ -97,6 +108,11 @@ class Chassis(object):
 
         rsp = self.send_message(req)
         check_completion_code(rsp.completion_code)
+
+    def chassis_watch(self, field, to_value, from_value=None, timeout=0, interval=0.5):
+        return self.watch(self.get_chassis_status, field, to_value, from_value, timeout, interval)
+
+
 
 class ChassisStatus(State):
     power_on = None
