@@ -222,7 +222,7 @@ Where the returned object has the following attributes shown in the order as the
   * payload_channel
   * payload_port
 
-The returned object also could be dumped directly. For example:
+The returned ``SolInfo`` also could be dumped directly. For example:
 
 .. code:: python
 
@@ -248,6 +248,63 @@ The output may be showed below:
         char_accumulate_interval=12
         retry_count=7
 
+SOL information Monitor Command 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command is used to wait specific property value to become the value of ``to_value`` .
+
++--------------------------------------+
+|    sol_watch(                 |br|   |
+|        field,                 |br|   |
+|        to_value,              |br|   |
+|        from_value=None,       |br|   |
+|        timeout=0,             |br|   |
+|        interval=0.5           |br|   |
+|        channel=0)                    |
++--------------------------------------+
+
+where
+
+    - field
+
+        The field of ``SolInfo``.
+
+    - to_value
+
+        | The value that the field of ``SolInfo`` would become to.
+        | The type of ``to_value`` is depend on the value type of the field.
+
+    - from_value=None
+
+        | The value that the field of ``SolInfo`` start.
+        | If it's ``None`` , then skip to check.
+        | The type of ``from_value`` is depend on the value type of the field.
+
+    - timeout=0
+
+        | ``-1`` means infinite wait.
+        | ``0`` means check once.
+        | ``value > 0`` means timeout value
+
+    - interval=0.5
+
+        The unit time to wait and then check. MUST >= 0.5.
+
+return value showed below:
+
+    - WATCH_STATE_TIMEOUT = -1
+    - WATCH_STATE_COMPLETE = 0
+    - WATCH_STATE_INIT = 1
+    - WATCH_STATE_WAIT_FROM_VAL = 2
+    - WATCH_STATE_WAIT_TO_VAL = 3
+
+Example code showed below:
+
+.. code:: python
+
+        ret = ipmi.sol_watch("volatile_bit_rate", 57600, timeout=2)
+        if ret == ipmi.WATCH_STATE_TIMEOUT:
+            print("timeout")
 
 Set SOL Configuration Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
