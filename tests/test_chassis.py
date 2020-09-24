@@ -50,12 +50,12 @@ def test_chassis_watch():
     chassis_obj.send_message_with_name = mock_send_message_with_name
 
     decode_message(msg, b'\x00\xff\xff\x5f')
-    eq_(chassis_obj.chassis_watch("power_on", True, timeout=1), Base.STATE_COMPLETE)
-    eq_(chassis_obj.chassis_watch("power_on", False, timeout=1), Base.STATE_TIMEOUT)
+    eq_(chassis_obj.chassis_watch("power_on", True, timeout=1), Base.WATCH_STATE_COMPLETE)
+    eq_(chassis_obj.chassis_watch("power_on", False, timeout=1), Base.WATCH_STATE_TIMEOUT)
 
     decode_message(msg, b'\x00\xfe\xff\x5f')
-    eq_(chassis_obj.chassis_watch("power_on", False, timeout=1), Base.STATE_COMPLETE)
-    eq_(chassis_obj.chassis_watch("power_on", True, timeout=1), Base.STATE_TIMEOUT)
+    eq_(chassis_obj.chassis_watch("power_on", False, timeout=1), Base.WATCH_STATE_COMPLETE)
+    eq_(chassis_obj.chassis_watch("power_on", True, timeout=1), Base.WATCH_STATE_TIMEOUT)
 
 def test_chassis_turn_id_req_valid():
     rsp = pyipmi.msgs.chassis.ChassisIdentifyRsp()

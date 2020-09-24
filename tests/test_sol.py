@@ -168,8 +168,8 @@ def test_sol_watch():
     sol_info.refresh_info(rsp)
     eq_(sol_info.volatile_bit_rate, 115200)
 
-    eq_(sol_obj.sol_watch("volatile_bit_rate", 115200, timeout=1, channel=0x0e), Base.STATE_COMPLETE)
-    eq_(sol_obj.sol_watch("volatile_bit_rate", 57600, timeout=1, channel=0x0e), Base.STATE_TIMEOUT)
+    eq_(sol_obj.sol_watch("volatile_bit_rate", 115200, timeout=1, channel=0x0e), Base.WATCH_STATE_COMPLETE)
+    eq_(sol_obj.sol_watch("volatile_bit_rate", 57600, timeout=1, channel=0x0e), Base.WATCH_STATE_TIMEOUT)
 
 @raises(AttributeError)
 def test_SolInfo_invalid__set_in_progress():
