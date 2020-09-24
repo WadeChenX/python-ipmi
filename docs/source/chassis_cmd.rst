@@ -79,7 +79,7 @@ For example:
 
 The output showed as below:
 
-.. code:: 
+.. code::
 
         power_on=False
         overload=False
@@ -93,8 +93,67 @@ The output showed as below:
         chassis_id_state=off
 
 
-        
+.. |br| raw:: html
 
+        <br/>
+
+Chassis Status Monitor Command 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command is used to wait specific property value to become the value of ``to_value`` .
+
++--------------------------------------+
+|    chassis_watch(             |br|   |
+|        field,                 |br|   |
+|        to_value,              |br|   |
+|        from_value=None,       |br|   |
+|        timeout=0,             |br|   |
+|        interval=0.5)                 |
++--------------------------------------+
+
+
+where
+
+    - field
+
+        The field of ``ChassisStatus``.
+
+    - to_value
+
+        | The value that the field of ``SolInfo`` would become to.
+        | The type of ``to_value`` is depend on the value type of the field.
+
+    - from_value=None
+
+        | The value that the field of ChassisStatus start.
+        | If it's ``None`` , then skip to check.
+        | The type of ``from_value`` is depend on the value type of the field.
+
+    - timeout=0
+
+        | ``-1`` means infinite wait.
+        | ``0`` means check once.
+        | ``value > 0`` means timeout value
+
+    - interval=0.5
+
+        The unit time to wait and then check. MUST >= 0.5.
+
+return value showed below:
+
+    - WATCH_STATE_TIMEOUT = -1
+    - WATCH_STATE_COMPLETE = 0
+    - WATCH_STATE_INIT = 1
+    - WATCH_STATE_WAIT_FROM_VAL = 2
+    - WATCH_STATE_WAIT_TO_VAL = 3
+
+Example code showed below:
+
+.. code:: python
+
+        ret = ipmi.chassis_watch("power_on", True, timeout=2)
+        if ret == ipmi.WATCH_STATE_TIMEOUT:
+            print("timeout")
 
 
 Chassis Control Command
