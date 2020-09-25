@@ -55,6 +55,34 @@ def create_connection(interface):
     ipmi.requester = NullRequester()
     return ipmi
 
+def create_connection_and_login_rmcp(
+        interface,
+        ipmb_addr=None, 
+        ipmi_addr=None, 
+        ipmi_port=None, 
+        user=None, 
+        password=None):
+
+    if ipmb_addr != None and type(ipmb_addr) != int:
+        raise RuntimeError("ipmb_addr is incorrect")
+    if ipmi_addr != None and type(ipmi_addr) != str:
+        raise RuntimeError("ipmi_addr is incorrect")
+    if ipmi_port != None and type(ipmi_port) != int:
+        raise RuntimeError("ipmb_port is incorrect")
+    if user != None and type(user) != str:
+        raise RuntimeError("user is incorrect")
+    if password != None and type(password) != str:
+        raise RuntimeError("password is incorrect")
+
+    ipmi = create_connection(interface)
+    ipmi.target = Target(ipmb_addr)
+    ipmi.session.set_session_type_rmcp(ipmi_addr, port=ipmi_port)
+    ipmi.session.set_auth_type_user(user, password)
+    ipmi.session.establish()
+
+    return ipmi
+
+
 
 class Requester(object):
     '''The Requester class represents an IPMI device which initiates a
